@@ -1,26 +1,8 @@
 import aiomysql
 from aiomysql import cursors
+from aiomysql.connection import Connection
 
 from tgbot.database import connect, close_connection
-
-
-async def users_name(connection: aiomysql.Connection, name, user_id):
-    cursor = await connection.cursor()
-    await cursor.execute('SELECT name FROM users WHERE user_id=%s', (user_id))
-    if await cursor.fetchone() is None:
-        await cursor.execute('INSERT INTO users (user_id, name) VALUES (%s, %s)', (user_id, name))
-    await connection.commit()
-    
-async def new_user_name (connection: aiomysql.Connection, name, user_id):
-    cursor = await connection.cursor()
-    await cursor.execute('SELECT id FROM users WHERE user_id=%s', (user_id))
-    id = await cursor.fetchone()
-    id = id.get('id')
-
-    await cursor.execute('INSERT INTO new_users (id) VALUES (%s)', (id))
-    await cursor.execute('UPDATE new_users SET name=%s WHERE id = %s', (name, id))
-    await cursor.execute('UPDATE new_users SET user_id = %s WHERE id=%s', (user_id, id))
-    await connection.commit()
 
     
 async def new_use (connection: aiomysql.Connection, user_id):
@@ -32,28 +14,32 @@ async def new_use (connection: aiomysql.Connection, user_id):
     else:
         return 0
 
-
-async def users_second_name (connection: aiomysql.Connection, second_name, user_id):
-    cursor = await connection.cursor()
-    await cursor.execute('SELECT second_name FROM users WHERE user_id=%s', (user_id))
-    i = await cursor.fetchone()
-    if i.get('second_name') == None:
-        await cursor.execute('UPDATE users SET second_name=%s WHERE user_id=%s', (second_name, user_id))
+async def new_user(connection: aiomysql.Connection, user_id, name, second_name, age):
+    cursor =await connection.cursor()
+    is_employer, exp, empl, is_complete = 0,0,0,0
+    shifts = 'no'
+    await cursor.execute('INSERT INTO users (user_id, name, second_name, age, is_employer, employer) VALUES (%s, %s, %s, %s, %s, %s)',
+    (user_id, name, second_name, age, is_employer, empl))
     await connection.commit()
-
-async def new_user_second_name(connection: aiomysql.Connection, second_name, user_id):
-    cursor = await connection.cursor()
     await cursor.execute('SELECT id FROM users WHERE user_id=%s', (user_id))
     id = await cursor.fetchone()
-    id = id.get('id')
-    
-    await cursor.execute('UPDATE new_users SET second_name=%s WHERE id = %s', (second_name, id))
+    id = id['id']
+    await cursor.execute('INSERT INTO new_users (id, user_id, name, second_name, shifts, age, experience, employer, is_complete) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+    (id, user_id, name, second_name, shifts, age, exp, empl, is_complete))
+
+    await connection.commit()
+
+async def exp(connection:  aiomysql.Connection, exp, user_id):
+    cursor : aiomysql.Connection.cursor
+    cursor = await connection.cursor()
+
+    await cursor.execute("UPDATE new_users SET experience = %s WHERE user_id = %s", (exp, user_id))
     await connection.commit()
 
 
-async def age (connection: aiomysql.Connection, age, user_id):
+async def shifts(connection:  aiomysql.Connection, shifts, user_id):
+    cursor : aiomysql.Connection.cursor
     cursor = await connection.cursor()
 
-    await cursor.execute('UPDATE new_users SET age=%s WHERE user_id=%s', (age,user_id))
-
+    await cursor.execute("UPDATE new_users SET shifts = %s WHERE user_id = %s", (shifts, user_id))
     await connection.commit()

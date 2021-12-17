@@ -25,9 +25,7 @@ async def start (message:types.Message):
         \n\nЧто бы ты хотел сделать?'
     con = await connect()
     user_id = message.from_user.id
-    print(user_id)
     i = await dbworker.new_use(con, user_id)
-    print(i)
     if i == 0:
         await message.reply(
             text=text,
